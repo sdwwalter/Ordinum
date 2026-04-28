@@ -1,0 +1,22 @@
+{
+  "name": "Ordinum - Executive system for order, clarity, and contextual separation.",
+  "short_name": "Ordinum",
+  "description": "Sistema executivo para organização de contextos mistos.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#171717",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

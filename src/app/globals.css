@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  /* Ordinum Brand System Overrides */
+  /* Indigo mapped to Primary */
+  --color-indigo-50: #F7F8FA;
+  --color-indigo-100: #F1F3F5;
+  --color-indigo-500: #64748B;
+  --color-indigo-600: #334155;
+  --color-indigo-700: #1F2937;
+  --color-indigo-800: #0f172a;
+
+  /* Emerald mapped to Success */
+  --color-emerald-50: #e8f0ee;
+  --color-emerald-100: #d1e2dd;
+  --color-emerald-500: #2F6B5B;
+  --color-emerald-600: #265649;
+  --color-emerald-700: #1d4036;
+
+  /* Amber mapped to Accent */
+  --color-amber-50: #fbf7ef;
+  --color-amber-100: #f7eedf;
+  --color-amber-200: #e8d1a4;
+  --color-amber-500: #C8A96A;
+  --color-amber-600: #a08755;
+  --color-amber-700: #786540;
+  
+  /* Violet mapped to Muted/Secondary */
+  --color-violet-50: #f8fafc;
+  --color-violet-100: #f1f5f9;
+  --color-violet-500: #9CA3AF;
+  --color-violet-600: #64748B;
+  --color-violet-700: #475569;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
