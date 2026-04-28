@@ -12,6 +12,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   /* config options here */
+  transpilePackages: ['@react-pdf/renderer'],
 };
 
 export default withPWA(nextConfig);
