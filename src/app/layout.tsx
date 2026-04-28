@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Ordinum",
   description: "Sistema executivo para organização de contextos mistos.",
+  manifest: "/manifest.json",
 };
 
 import { Toaster } from 'sonner';
