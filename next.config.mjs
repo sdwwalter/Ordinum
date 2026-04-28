@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@react-pdf/renderer'],
+  turbopack: {},
   webpack: (config) => {
     // Resolve o problema de ESM com @react-pdf/renderer
     config.resolve = config.resolve || {};
