@@ -16,7 +16,12 @@ if (!supabaseUrl || (!supabaseKey && !supabaseServiceKey)) {
 
 // O script de seed funciona melhor se rodado com a service_role key.
 // Como não temos acesso a ela, vamos tentar usar o Anon Key com um usuário de teste.
-const supabase = createClient(supabaseUrl, supabaseServiceKey || supabaseKey);
+const anonKey = supabaseServiceKey || supabaseKey;
+if (!anonKey) {
+  console.error("Chave do Supabase não encontrada");
+  process.exit(1);
+}
+const supabase = createClient(supabaseUrl, anonKey);
 
 async function main() {
   console.log("🌱 Iniciando Seed do Banco de Dados...");
