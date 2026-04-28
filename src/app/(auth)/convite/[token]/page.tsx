@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 
-export default function ConvitePage({ params }: { params: { token: string } }) {
+export default function ConvitePage({ params }: { params: Promise<{ token: string }> }) {
   const router = useRouter();
   const supabase = createClient();
   const [password, setPassword] = useState('');
@@ -16,6 +16,9 @@ export default function ConvitePage({ params }: { params: { token: string } }) {
 
   // NOTA: Em um cenário real, você verificaria o token do convite via Supabase Auth admin
   // ou uma Edge Function antes de renderizar ou permitir setar a senha.
+  
+  // Desembrulhar params se precisar usar o token
+  // const { token } = await params;
   
   const handleAceitarConvite = async (e: React.FormEvent) => {
     e.preventDefault();
