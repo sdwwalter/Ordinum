@@ -1,5 +1,5 @@
 export type TipoProjeto = 'empresa' | 'pessoal';
-export type StatusProjeto = 'rascunho' | 'ativo' | 'pausado' | 'concluido' | 'cancelado';
+export type StatusProjeto = 'rascunho' | 'ativo' | 'pausado' | 'concluido' | 'cancelado' | 'algum_dia';
 export type PrioridadeProjeto = 'alta' | 'media' | 'baixa';
 
 export type Projeto = {
@@ -34,5 +34,8 @@ export type TarefaProjeto = {
   data_prevista: string | null;
   data_conclusao: string | null;
   posicao: number;
+  contexto?: '@computador' | '@telefone' | '@campo' | '@reuniao' | '@email' | '@qualquer' | null;
+  is_next_action?: boolean;
+  aguardando_de?: string | null;
   created_at: string;
 };

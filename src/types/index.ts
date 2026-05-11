@@ -4,3 +4,4 @@ export * from './empresa';
 export * from './projetos';
 export * from './kanban';
 export * from './alinhamento';
+export * from './gtd';

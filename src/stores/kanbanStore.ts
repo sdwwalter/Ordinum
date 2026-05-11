@@ -108,6 +108,10 @@ export const useKanbanStore = create<KanbanState>()(
         const workspaceId = (item as any).workspace_id || localStorage.getItem('duetto-workspace-id'); // fallback
         if (workspaceId) {
           useGamificationStore.getState().registrarEvento(workspaceId, 'tarefa_concluida', 20, `Concluiu a tarefa: ${item.titulo}`);
+          // if this item was a next action, also award next action points
+          if ((item as any).is_next_action) {
+            useGamificationStore.getState().registrarEvento(workspaceId, 'next_action_concluida', 5, `Próxima ação concluída: ${item.titulo}`);
+          }
         }
       }
     },

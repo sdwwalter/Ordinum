@@ -1,7 +1,13 @@
 import Link from 'next/link';
-import { Home, Building2, Rocket, Kanban, FileText, Settings, LayoutDashboard } from 'lucide-react';
+import { Home, Building2, Rocket, Kanban, FileText, Settings, LayoutDashboard, Inbox } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { Badge } from '@/components/ui/badge';
 
-export function Sidebar() {
+export async function Sidebar() {
+  const supabase = await createClient();
+  const { count } = await supabase.from('gtd_inbox').select('id', { count: 'exact', head: true }).eq('processado', false);
+  const inboxCount = typeof count === 'number' ? count : 0;
+
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-neutral-200 bg-white h-screen sticky top-0">
       <div className="p-6 border-b border-neutral-200">
@@ -33,6 +39,13 @@ export function Sidebar() {
         <Link href="/app/kanban" className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-50 text-slate-700">
           <Kanban className="w-5 h-5" />
           Kanban
+        </Link>
+        <Link href="/inbox" className="flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-50 text-slate-700">
+          <div className="flex items-center gap-3">
+            <Inbox className="w-5 h-5" />
+            Inbox
+          </div>
+          {inboxCount > 0 && <Badge variant="destructive">{inboxCount}</Badge>}
         </Link>
         <Link href="/app/alinhamento" className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-violet-50 text-violet-700">
           <FileText className="w-5 h-5" />

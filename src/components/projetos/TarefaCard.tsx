@@ -3,7 +3,7 @@
 import { TarefaProjeto } from '@/types/projetos';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { GripVertical, CheckCircle2, AlertCircle, Clock, Zap } from 'lucide-react';
 
 interface TarefaCardProps {
   tarefa: TarefaProjeto;
@@ -64,6 +64,21 @@ export function TarefaCard({ tarefa }: TarefaCardProps) {
             )}
           </div>
         )}
+        <div className="mt-2 flex items-center gap-2 text-xs">
+          {tarefa.contexto && (
+            <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-700 rounded">{tarefa.contexto.replace('@','')}</span>
+          )}
+          {tarefa.is_next_action && (
+            <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+              <Zap className="w-3 h-3" /> Próxima Ação
+            </span>
+          )}
+          {tarefa.aguardando_de && (
+            <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+              <Clock className="w-3 h-3" /> {tarefa.aguardando_de}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

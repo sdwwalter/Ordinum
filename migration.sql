@@ -309,7 +309,7 @@ CREATE POLICY "reservas_metas_proprio" ON reservas_metas
 
 -- View Unificada do Kanban
 CREATE OR REPLACE VIEW v_kanban_items AS
-  -- Tarefas de projetos ativos
+  -- Tarefas de projetos ativos (com campos GTD)
   SELECT
     tp.id,
     tp.titulo,
@@ -329,7 +329,10 @@ CREATE OR REPLACE VIEW v_kanban_items AS
     tp.data_prevista < CURRENT_DATE
       AND tp.status != 'concluida' AS vencido,
     tp.posicao,
-    p.workspace_id
+    p.workspace_id,
+    tp.contexto,
+    tp.is_next_action,
+    tp.aguardando_de
   FROM tarefas_projeto tp
   JOIN projetos p ON tp.projeto_id = p.id
   WHERE p.status IN ('ativo', 'em_andamento')
@@ -351,7 +354,10 @@ CREATE OR REPLACE VIEW v_kanban_items AS
     aa.prazo < CURRENT_DATE
       AND aa.status != 'concluido' AS vencido,
     aa.posicao,
-    a.workspace_id
+    a.workspace_id,
+    NULL AS contexto,
+    FALSE AS is_next_action,
+    NULL AS aguardando_de
   FROM alinhamento_acoes aa
   JOIN alinhamentos a ON aa.alinhamento_id = a.id
   WHERE aa.status != 'concluido';
@@ -438,3 +444,62 @@ BEGIN
   RETURN v_criados;
 END;
 $$;
+
+-- ==========================================
+-- GTD: Inbox, task columns and project status (Sprint 1)
+-- ==========================================
+
+-- INBOX: captura bruta de itens não processados
+CREATE TABLE IF NOT EXISTS gtd_inbox (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id  UUID REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id       UUID REFERENCES auth.users(id),
+  conteudo      TEXT NOT NULL,
+  processado    BOOLEAN DEFAULT FALSE,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE IF EXISTS gtd_inbox ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE polname = 'inbox_proprio' AND polrelid = 'gtd_inbox'::regclass
+  ) THEN
+    EXECUTE $$
+      CREATE POLICY "inbox_proprio" ON gtd_inbox
+        USING (workspace_id = workspace_do_usuario());
+    $$;
+  END IF;
+END$$;
+
+-- CONTEXTOS + NEXT ACTION nas tarefas
+ALTER TABLE IF EXISTS tarefas_projeto
+  ADD COLUMN IF NOT EXISTS contexto TEXT CHECK (
+    contexto IN ('@computador','@telefone','@campo','@reuniao','@email','@qualquer')
+  );
+
+ALTER TABLE IF EXISTS tarefas_projeto
+  ADD COLUMN IF NOT EXISTS is_next_action BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE IF EXISTS tarefas_projeto
+  ADD COLUMN IF NOT EXISTS aguardando_de TEXT;
+
+-- SOMEDAY/MAYBE nos projetos
+-- Atualiza constraint de status para incluir 'algum_dia'
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c JOIN pg_class t ON c.conrelid = t.oid
+    WHERE t.relname = 'projetos' AND c.conname = 'projetos_status_check'
+  ) THEN
+    ALTER TABLE projetos DROP CONSTRAINT IF EXISTS projetos_status_check;
+  END IF;
+  ALTER TABLE projetos
+    ADD CONSTRAINT IF NOT EXISTS projetos_status_check
+    CHECK (status IN ('rascunho','ativo','pausado','concluido','cancelado','algum_dia'));
+END$$;
+
+-- Enable RLS and policy for new table
+ALTER TABLE IF EXISTS gtd_inbox ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "gtd_inbox_proprio" ON gtd_inbox USING (workspace_id = workspace_do_usuario());
+
