@@ -3,15 +3,77 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { AuthShell } from '@/components/ui/auth-shell';
+import { AuthField } from '@/components/ui/auth-field';
+import { Button } from '@/components/ui/button';
 import { InputMoeda } from '@/components/ui/input-moeda';
 import { Select } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { ModoWorkspace } from '@/types/workspace';
 import { TipoEmpresa } from '@/types/empresa';
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Users, User, Handshake } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
+
+/* Step progress dots */
+function StepDots({ step, total }: { step: number; total: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            'h-1.5 rounded-full transition-all duration-300',
+            i < step ? 'bg-brand-400 w-6' : 'bg-white/12 w-3',
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* Mode card */
+function ModeCard({
+  selected,
+  onClick,
+  icon: Icon,
+  title,
+  description,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'w-full text-left rounded-[14px] border p-4 flex items-start gap-3 transition-all duration-150',
+        selected
+          ? 'border-brand-400/40 bg-brand-400/8'
+          : 'border-white/8 bg-surface-2 hover:border-white/14',
+      )}
+    >
+      <div
+        className={cn(
+          'w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5',
+          selected ? 'bg-brand-400/20 text-brand-300' : 'bg-surface-3 text-text-faint',
+        )}
+      >
+        <Icon className="w-4.5 h-4.5" strokeWidth={1.8} />
+      </div>
+      <div>
+        <div className="text-[14px] font-semibold text-text">{title}</div>
+        <div className="text-[12px] text-text-faint mt-0.5">{description}</div>
+      </div>
+    </button>
+  );
+}
+
+/* Color dot picker */
+const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#22D3EE'];
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -26,11 +88,11 @@ export default function CadastroPage() {
   const [password, setPassword] = useState('');
   const [nomeWorkspace, setNomeWorkspace] = useState('');
   const [emailConvite, setEmailConvite] = useState('');
-  
+
   const [nomeEmpresa, setNomeEmpresa] = useState('');
   const [tipoEmpresa, setTipoEmpresa] = useState<TipoEmpresa | ''>('');
   const [corEmpresa, setCorEmpresa] = useState('#10B981');
-  
+
   const [prolabore, setProlabore] = useState(0);
 
   // Aux state for created entities
@@ -42,7 +104,7 @@ export default function CadastroPage() {
     setLoading(true);
     setError(null);
 
-    // 1. Cadastrar usuário no Supabase Auth
+    // 1. Cadastrar usuario no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -84,10 +146,8 @@ export default function CadastroPage() {
       return;
     }
 
-    // Enviar convite se aplicável
+    // Enviar convite se aplicavel
     if (modo !== 'solo' && emailConvite) {
-      // Simples inserção de membro pendente ou convite via edge function
-      // Para a fase 2, vamos assumir que o convite foi agendado
       console.log('Enviando convite para', emailConvite);
     }
 
@@ -101,7 +161,7 @@ export default function CadastroPage() {
     setError(null);
 
     if (!workspaceId) {
-      setError('Workspace não encontrado.');
+      setError('Workspace nao encontrado.');
       setLoading(false);
       return;
     }
@@ -112,7 +172,7 @@ export default function CadastroPage() {
         workspace_id: workspaceId,
         nome: nomeEmpresa,
         tipo: tipoEmpresa as string,
-        cor: corEmpresa
+        cor: corEmpresa,
       })
       .select()
       .single();
@@ -131,10 +191,6 @@ export default function CadastroPage() {
   const handleDefineProlabore = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Na fase 2, apenas avançamos. A lógica profunda de prolabore será no Módulo Empresa (Fase 4)
-    // Aqui poderíamos salvar o valor como meta ou configuração inicial
-    
     setLoading(false);
     setStep(5);
   };
@@ -148,227 +204,235 @@ export default function CadastroPage() {
     router.refresh();
   };
 
+  /* ---- Step titles ---- */
+  const STEP_META: Record<number, { title: string; description: string }> = {
+    1: { title: 'Modo de Operacao', description: 'Como voce vai usar o Ordinum?' },
+    2: { title: 'Criar conta', description: 'Configure seu acesso inicial' },
+    3: { title: 'Primeira Empresa', description: 'Cadastre o seu negocio principal' },
+    4: { title: 'Prolabore Base', description: 'Quanto voce retira da empresa mensalmente?' },
+    5: { title: 'Tudo pronto!', description: 'Seu workspace esta configurado.' },
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-4">
-      <Card className="w-full max-w-md">
-        {step === 1 && (
-          <form onSubmit={() => setStep(2)}>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">Modo de Operação</CardTitle>
-              <CardDescription>Como você vai usar o Ordinum?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div 
-                  className={`border p-4 rounded-md cursor-pointer ${modo === 'casal' ? 'border-primary bg-primary/5' : 'border-neutral-200'}`}
-                  onClick={() => setModo('casal')}
-                >
-                  <h3 className="font-semibold">👫 Casal empreendedor</h3>
-                  <p className="text-sm text-neutral-500">Separar dinheiro de casa e empresa juntos.</p>
-                </div>
-                <div 
-                  className={`border p-4 rounded-md cursor-pointer ${modo === 'solo' ? 'border-primary bg-primary/5' : 'border-neutral-200'}`}
-                  onClick={() => setModo('solo')}
-                >
-                  <h3 className="font-semibold">🧑 Empreendedor solo</h3>
-                  <p className="text-sm text-neutral-500">Organizar finanças pessoais e negócios sozinho.</p>
-                </div>
-                <div 
-                  className={`border p-4 rounded-md cursor-pointer ${modo === 'socios' ? 'border-primary bg-primary/5' : 'border-neutral-200'}`}
-                  onClick={() => setModo('socios')}
-                >
-                  <h3 className="font-semibold">🤝 Sócios de negócio</h3>
-                  <p className="text-sm text-neutral-500">Gestão empresarial sem misturar contas pessoais.</p>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex-col gap-4">
-              <Button type="button" className="w-full" onClick={() => setStep(2)}>Continuar</Button>
-              <div className="text-center text-sm">
-                Já tem uma conta?{' '}
-                <Link href="/login" className="font-semibold text-neutral-950 underline hover:text-neutral-700">
-                  Entrar
-                </Link>
-              </div>
-            </CardFooter>
-          </form>
-        )}
+    <AuthShell
+      title={STEP_META[step].title}
+      description={STEP_META[step].description}
+    >
+      <StepDots step={step} total={5} />
 
-        {step === 2 && (
-          <form onSubmit={handleCreateWorkspace}>
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Criar conta</CardTitle>
-              <CardDescription>Configure seu acesso inicial</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && <div className="text-sm font-medium text-red-500 bg-red-50 p-3 rounded-md">{error}</div>}
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nome do Workspace</label>
-                <Input
-                  placeholder="Ex: Família Silva"
-                  value={nomeWorkspace}
-                  onChange={(e) => setNomeWorkspace(e.target.value)}
-                  required
-                />
-              </div>
-
-              {modo !== 'solo' && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Convidar Parceiro (Opcional)</label>
-                  <Input
-                    type="email"
-                    placeholder="email@parceiro.com"
-                    value={emailConvite}
-                    onChange={(e) => setEmailConvite(e.target.value)}
-                  />
-                  <p className="text-xs text-neutral-500">Eles receberão um convite por email.</p>
-                </div>
-              )}
-
-              <hr className="my-4" />
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Seu Email</label>
-                <Input
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Sua Senha</label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex gap-2">
-              <Button type="button" variant="outline" className="w-1/3" onClick={() => setStep(1)} disabled={loading}>
-                Voltar
-              </Button>
-              <Button type="submit" className="w-2/3" disabled={loading}>
-                {loading ? 'Criando...' : 'Criar Conta'}
-              </Button>
-            </CardFooter>
-          </form>
-        )}
-
-        {step === 3 && (
-          <form onSubmit={handleCreateEmpresa}>
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Primeira Empresa</CardTitle>
-              <CardDescription>Cadastre o seu negócio principal</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && <div className="text-sm font-medium text-red-500 bg-red-50 p-3 rounded-md">{error}</div>}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nome da Empresa</label>
-                <Input
-                  placeholder="Ex: Consultoria Silva"
-                  value={nomeEmpresa}
-                  onChange={(e) => setNomeEmpresa(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo</label>
-                <Select
-                  value={tipoEmpresa}
-                  onChange={(e) => setTipoEmpresa(e.target.value as TipoEmpresa)}
-                  required
-                  options={[
-                    { label: 'Serviços', value: 'servicos' },
-                    { label: 'Produto Físico', value: 'produto' },
-                    { label: 'Tecnologia / SaaS', value: 'tech' },
-                    { label: 'Comércio', value: 'comercio' },
-                    { label: 'Outro', value: 'outro' },
-                  ]}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Cor de Identificação</label>
-                <div className="flex gap-2">
-                  {['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'].map(cor => (
-                    <div 
-                      key={cor}
-                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${corEmpresa === cor ? 'border-neutral-900' : 'border-transparent'}`}
-                      style={{ backgroundColor: cor }}
-                      onClick={() => setCorEmpresa(cor)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Salvando...' : 'Salvar Empresa'}
-              </Button>
-            </CardFooter>
-          </form>
-        )}
-
-        {step === 4 && (
-          <form onSubmit={handleDefineProlabore}>
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Prolabore Base</CardTitle>
-              <CardDescription>Quanto você retira da empresa mensalmente?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-neutral-100 p-4 rounded-md text-sm text-neutral-600 mb-4">
-                Defina um valor estimado para o seu ganho mensal da empresa.
-                O Ordinum conecta automaticamente a retirada da sua empresa com as suas receitas pessoais.
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Valor do Prolabore Mensal</label>
-                <InputMoeda
-                  value={prolabore}
-                  onChange={setProlabore}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex gap-2">
-              <Button type="button" variant="outline" className="w-1/3" onClick={handleSkipProlabore}>
-                Pular
-              </Button>
-              <Button type="submit" className="w-2/3" disabled={loading}>
-                Definir Prolabore
-              </Button>
-            </CardFooter>
-          </form>
-        )}
-
-        {step === 5 && (
-          <div className="text-center py-8">
-            <CardHeader>
-              <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 flex items-center justify-center rounded-full mb-4">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <CardTitle className="text-2xl font-bold">Tudo pronto!</CardTitle>
-              <CardDescription>Seu workspace está configurado.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-left bg-neutral-50 m-6 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2 text-sm uppercase tracking-wider text-neutral-500">Seus Primeiros Passos:</h4>
-              <ul className="space-y-2 text-sm text-neutral-700">
-                <li className="flex items-center gap-2"><div className="w-4 h-4 rounded-full border border-neutral-300" /> Registrar sua primeira despesa pessoal</li>
-                <li className="flex items-center gap-2"><div className="w-4 h-4 rounded-full border border-neutral-300" /> Criar um projeto</li>
-                {modo !== 'solo' && <li className="flex items-center gap-2"><div className="w-4 h-4 rounded-full border border-neutral-300" /> Fazer o primeiro alinhamento</li>}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={finishOnboarding}>
-                Ir para o Dashboard
-              </Button>
-            </CardFooter>
+      {/* ---- STEP 1: Modo ---- */}
+      {step === 1 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5">
+            <ModeCard
+              selected={modo === 'casal'}
+              onClick={() => setModo('casal')}
+              icon={Users}
+              title="Casal empreendedor"
+              description="Separar dinheiro de casa e empresa juntos."
+            />
+            <ModeCard
+              selected={modo === 'solo'}
+              onClick={() => setModo('solo')}
+              icon={User}
+              title="Empreendedor solo"
+              description="Organizar financas pessoais e negocios sozinho."
+            />
+            <ModeCard
+              selected={modo === 'socios'}
+              onClick={() => setModo('socios')}
+              icon={Handshake}
+              title="Socios de negocio"
+              description="Gestao empresarial sem misturar contas pessoais."
+            />
           </div>
-        )}
-      </Card>
-    </div>
+          <Button variant="primary" size="md" className="w-full mt-1" onClick={() => setStep(2)}>
+            Continuar
+          </Button>
+          <p className="text-center text-[13px] text-text-faint">
+            Ja tem uma conta?{' '}
+            <Link href="/login" className="font-semibold text-brand-300 hover:text-brand-400 transition-colors">
+              Entrar
+            </Link>
+          </p>
+        </div>
+      )}
+
+      {/* ---- STEP 2: Criar conta ---- */}
+      {step === 2 && (
+        <form onSubmit={handleCreateWorkspace} className="flex flex-col gap-4">
+          {error && (
+            <div className="rounded-[10px] border border-error/25 bg-error/8 px-4 py-3 text-[13px] text-error">
+              {error}
+            </div>
+          )}
+
+          <AuthField
+            label="Nome do Workspace"
+            placeholder="Ex: Familia Silva"
+            value={nomeWorkspace}
+            onChange={(e) => setNomeWorkspace(e.target.value)}
+            required
+          />
+
+          {modo !== 'solo' && (
+            <AuthField
+              label="Convidar Parceiro (Opcional)"
+              type="email"
+              placeholder="email@parceiro.com"
+              value={emailConvite}
+              onChange={(e) => setEmailConvite(e.target.value)}
+              hint="Eles receberao um convite por email."
+            />
+          )}
+
+          <div className="border-t border-white/6 pt-4 flex flex-col gap-4">
+            <AuthField
+              label="Seu Email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+            <AuthField
+              label="Sua Senha"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div className="flex gap-2 mt-1">
+            <Button type="button" variant="outline" size="md" className="w-1/3" onClick={() => setStep(1)} disabled={loading}>
+              Voltar
+            </Button>
+            <Button type="submit" variant="primary" size="md" className="w-2/3" disabled={loading}>
+              {loading ? 'Criando...' : 'Criar Conta'}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {/* ---- STEP 3: Empresa ---- */}
+      {step === 3 && (
+        <form onSubmit={handleCreateEmpresa} className="flex flex-col gap-4">
+          {error && (
+            <div className="rounded-[10px] border border-error/25 bg-error/8 px-4 py-3 text-[13px] text-error">
+              {error}
+            </div>
+          )}
+
+          <AuthField
+            label="Nome da Empresa"
+            placeholder="Ex: Consultoria Silva"
+            value={nomeEmpresa}
+            onChange={(e) => setNomeEmpresa(e.target.value)}
+            required
+          />
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-text-muted">Tipo</label>
+            <Select
+              value={tipoEmpresa}
+              onChange={(e) => setTipoEmpresa(e.target.value as TipoEmpresa)}
+              required
+              options={[
+                { label: 'Servicos', value: 'servicos' },
+                { label: 'Produto Fisico', value: 'produto' },
+                { label: 'Tecnologia / SaaS', value: 'tech' },
+                { label: 'Comercio', value: 'comercio' },
+                { label: 'Outro', value: 'outro' },
+              ]}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[13px] font-medium text-text-muted">Cor de Identificacao</label>
+            <div className="flex items-center gap-2">
+              {COLORS.map((cor) => (
+                <button
+                  type="button"
+                  key={cor}
+                  onClick={() => setCorEmpresa(cor)}
+                  className={cn(
+                    'w-8 h-8 rounded-full border-2 transition-all',
+                    corEmpresa === cor ? 'border-white scale-110' : 'border-transparent opacity-70 hover:opacity-100',
+                  )}
+                  style={{ backgroundColor: cor }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <Button type="submit" variant="primary" size="md" className="w-full mt-1" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar Empresa'}
+          </Button>
+        </form>
+      )}
+
+      {/* ---- STEP 4: Prolabore ---- */}
+      {step === 4 && (
+        <form onSubmit={handleDefineProlabore} className="flex flex-col gap-4">
+          <div className="rounded-[12px] border border-brand-400/15 bg-brand-400/6 px-4 py-3 text-[13px] text-text-muted">
+            Defina um valor estimado para o seu ganho mensal da empresa.
+            O Ordinum conecta automaticamente a retirada da sua empresa com as suas receitas pessoais.
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-text-muted">Valor do Prolabore Mensal</label>
+            <InputMoeda value={prolabore} onChange={setProlabore} />
+          </div>
+
+          <div className="flex gap-2 mt-1">
+            <Button type="button" variant="outline" size="md" className="w-1/3" onClick={handleSkipProlabore}>
+              Pular
+            </Button>
+            <Button type="submit" variant="primary" size="md" className="w-2/3" disabled={loading}>
+              Definir Prolabore
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {/* ---- STEP 5: Sucesso ---- */}
+      {step === 5 && (
+        <div className="flex flex-col items-center gap-6 text-center">
+          <div
+            className="w-16 h-16 rounded-[20px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, rgba(52,211,153,.20), rgba(52,211,153,.06))' }}
+          >
+            <CheckCircle2 className="w-8 h-8 text-success" strokeWidth={1.8} />
+          </div>
+
+          <div className="w-full rounded-[14px] border border-white/7 bg-surface-2 p-5 text-left">
+            <h4 className="text-[11px] font-bold tracking-[.1em] text-text-faint uppercase mb-3">
+              Seus Primeiros Passos:
+            </h4>
+            <ul className="flex flex-col gap-2.5">
+              {[
+                'Registrar sua primeira despesa pessoal',
+                'Criar um projeto',
+                ...(modo !== 'solo' ? ['Fazer o primeiro alinhamento'] : []),
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2.5 text-[13px] text-text-muted">
+                  <div className="w-4 h-4 rounded-full border border-white/20 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <Button variant="primary" size="md" className="w-full" onClick={finishOnboarding}>
+            Ir para o Dashboard
+          </Button>
+        </div>
+      )}
+    </AuthShell>
   );
 }

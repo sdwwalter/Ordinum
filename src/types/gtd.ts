@@ -24,19 +24,3 @@ export interface GtdInboxItem {
   processado: boolean;
   created_at: string;
 }
-
-export interface TarefaProjeto {
-  id: string;
-  projeto_id: string;
-  titulo: string;
-  descricao?: string;
-  responsavel_id?: string;
-  status: TarefaStatus;
-  data_prevista?: string;
-  data_conclusao?: string;
-  posicao: number;
-  contexto?: GtdContexto;
-  is_next_action: boolean;
-  aguardando_de?: string;
-  created_at: string;
-}

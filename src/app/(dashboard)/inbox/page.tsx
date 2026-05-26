@@ -1,3 +1,5 @@
+'use client';
+
 import InboxCaptura from '@/components/gtd/InboxCaptura';
 import InboxListClient from '@/components/gtd/InboxList.client';
 import RevisaoSemanalGTD from '@/components/alinhamento/RevisaoSemanalGTD';

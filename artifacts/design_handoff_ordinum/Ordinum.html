@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ordinum — Sistema executivo</title>
+  <link rel="stylesheet" href="tokens.css">
+
+  <!-- React + Babel pinned -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- Lucide icons (vanilla) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body style="background: #03060E;">
+  <div id="root"></div>
+
+  <!-- Order: primitives → tweaks scaffold → views → app -->
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="landing.jsx"></script>
+  <script type="text/babel" src="system.jsx"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    /* ── Tweak defaults — wrapped in EDITMODE markers so the host
+       can rewrite the JSON on disk when the user changes a value. */
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "heroStyle": "sans",
+      "accent": {
+        "value": "cyan",
+        "color": "#22D3EE"
+      },
+      "kanbanDensity": "comfortable",
+      "showLogos": true
+    }/*EDITMODE-END*/;
+
+    /* Accent options apply via CSS variable overrides on :root. */
+    const ACCENT_PRESETS = {
+      teal:    { 300: "#5EEAD4", 400: "#2DD4BF", 500: "#14B8A6", 600: "#0D9488",
+                 dark: "#06251F" },
+      cyan:    { 300: "#67E8F9", 400: "#22D3EE", 500: "#06B6D4", 600: "#0891B2",
+                 dark: "#062B33" },
+      emerald: { 300: "#6EE7B7", 400: "#34D399", 500: "#10B981", 600: "#059669",
+                 dark: "#022C1F" },
+      sky:     { 300: "#7DD3FC", 400: "#38BDF8", 500: "#0EA5E9", 600: "#0284C7",
+                 dark: "#0A1F2E" },
+    };
+    function applyAccent(nameOrObj) {
+      const name = typeof nameOrObj === 'string' ? nameOrObj : (nameOrObj?.value || 'teal');
+      const p = ACCENT_PRESETS[name] || ACCENT_PRESETS.teal;
+      const r = document.documentElement.style;
+      r.setProperty('--teal-300', p[300]);
+      r.setProperty('--teal-400', p[400]);
+      r.setProperty('--teal-500', p[500]);
+      r.setProperty('--teal-600', p[600]);
+    }
+
+    function App() {
+      const [t, setT] = useTweaks(TWEAK_DEFAULTS);
+
+      useEffect(() => { applyAccent(t.accent); }, [t.accent]);
+
+      // Re-render lucide icons after any tweak-driven re-render
+      useEffect(() => {
+        const id = setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+        return () => clearTimeout(id);
+      }, [t]);
+
+      return (
+        <>
+          <DesignCanvas>
+            <DCSection id="produto" title="Ordinum" subtitle="Landing page + sistema interno, mesma DNA visual">
+              <DCArtboard id="landing" label="Landing page · marketing"
+                width={1440} height={4260}
+                style={{ background: '#03060E' }}>
+                <div style={{ width: 1440, minHeight: 4260 }}>
+                  <Landing heroVariant={t.heroStyle}/>
+                </div>
+              </DCArtboard>
+
+              <DCArtboard id="sistema" label="Sistema · app interno (interativo)"
+                width={1440} height={960}
+                style={{ background: '#03060E' }}>
+                <div style={{ width: 1440, height: 960 }}>
+                  <SystemApp/>
+                </div>
+              </DCArtboard>
+            </DCSection>
+          </DesignCanvas>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="Hero">
+              <TweakRadio
+                label="Estilo do título"
+                value={t.heroStyle}
+                options={[
+                  { value: "sans", label: "Sans bold" },
+                  { value: "playfair", label: "Playfair editorial" },
+                ]}
+                onChange={(v) => setT('heroStyle', v)}
+              />
+            </TweakSection>
+
+            <TweakSection label="Cor de marca">
+              <TweakColor
+                label="Accent"
+                value={t.accent}
+                options={[
+                  { value: "teal",    color: "#2DD4BF" },
+                  { value: "cyan",    color: "#22D3EE" },
+                  { value: "emerald", color: "#34D399" },
+                  { value: "sky",     color: "#38BDF8" },
+                ]}
+                onChange={(v) => setT('accent', v)}
+              />
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>

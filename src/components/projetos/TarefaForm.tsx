@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useProjetosStore } from '@/stores/projetosStore';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface TarefaFormProps {
   projetoId: string;
@@ -18,7 +18,7 @@ export function TarefaForm({ projetoId, userId, onSuccess }: TarefaFormProps) {
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [dataPrevista, setDataPrevista] = useState('');
-  const [contexto, setContexto] = useState<string | null>(null);
+  const [contexto, setContexto] = useState<'@computador' | '@telefone' | '@campo' | '@reuniao' | '@email' | '@qualquer' | null>(null);
   const [isNextAction, setIsNextAction] = useState(false);
   const [aguardandoDe, setAguardandoDe] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,7 +71,7 @@ export function TarefaForm({ projetoId, userId, onSuccess }: TarefaFormProps) {
       <div>
         <label className="text-xs font-semibold text-neutral-500 uppercase">Contexto (opcional)</label>
         <div className="flex gap-2 mt-2 flex-wrap">
-          {['@computador','@telefone','@campo','@reuniao','@email','@qualquer'].map((c) => (
+          {(['@computador','@telefone','@campo','@reuniao','@email','@qualquer'] as const).map((c) => (
             <button key={c} type="button" onClick={() => setContexto(contexto === c ? null : c)}
               className={`px-2 py-1 border rounded ${contexto === c ? 'bg-slate-800 text-white' : 'bg-white'}`}>
               {c.replace('@','')}
@@ -82,7 +82,7 @@ export function TarefaForm({ projetoId, userId, onSuccess }: TarefaFormProps) {
 
       <div className="flex items-center gap-3">
         <label className="text-xs font-semibold text-neutral-500 uppercase">Próxima Ação</label>
-        <Switch checked={isNextAction} onCheckedChange={(v) => setIsNextAction(Boolean(v))} />
+        <Checkbox checked={isNextAction} onCheckedChange={(v) => setIsNextAction(Boolean(v))} />
       </div>
 
       <div>

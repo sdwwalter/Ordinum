@@ -1,0 +1,130 @@
+# Duetto — Plano de Verificação do Sistema
+
+> Legenda: 🔴 crítico / pode quebrar — 🟡 risco moderado — ⬜ verificar manualmente
+
+---
+
+## Infraestrutura & Deploy
+
+### proxy.ts — Roteamento e autenticação
+*Recém corrigido — verificar fluxo completo*
+
+- 🔴 Acesso a `/dashboard` sem login → redireciona para `/login`?
+- 🔴 Login feito → redireciona para `/dashboard`?
+- 🟡 `/login` com usuário já logado → redireciona sem loop?
+- ⬜ Variáveis `NEXT_PUBLIC_SUPABASE_URL` e `ANON_KEY` configuradas na Vercel?
+- ⬜ Cookie de sessão persiste após reload da página?
+
+### Vercel — Build e rotas Next.js
+*App Router com route groups*
+
+- ⬜ `/precos` carrega sem login?
+- ⬜ `/cadastro` carrega sem login?
+- 🟡 `/kanban`, `/projetos`, `/empresa` — todas as rotas do grupo `(app)` funcionam?
+- ⬜ 404 em rota inexistente mostra página de erro customizada?
+
+---
+
+## Autenticação & Onboarding (Fases 1–2)
+
+### Supabase Auth — Cadastro e login
+
+- 🔴 Cadastro cria usuário no Supabase e workspace?
+- 🔴 Login com e-mail/senha autentica e redireciona?
+- 🟡 Convite por token (`/convite/[token]`) valida e associa usuário ao workspace?
+- ⬜ Logout limpa a sessão e redireciona para `/`?
+
+*Critérios SCLC-G: S — máx 3 cliques, L — sem ansiedade*
+
+### Onboarding — Seleção de modo do workspace
+
+- 🔴 Tela de modo aparece na primeira entrada (casal / solo / sócios)?
+- 🟡 Módulo ALINHAMENTO oculto no modo solo?
+- 🟡 Módulo PESSOAL privado no modo sócios?
+- ⬜ Modo salvo no workspace e persiste no reload?
+
+*Critérios SCLC-G: C — completo, C — conectado*
+
+---
+
+## Módulos de Dados (Fases 3–7)
+
+### PESSOAL — Lançamentos + reservas
+
+- ⬜ CRUD de receitas e despesas pessoais funciona?
+- 🟡 Semáforo verde/amarelo/vermelho calcula corretamente?
+- 🔴 Prolabore criado na empresa → receita gerada automaticamente no PESSOAL?
+- ⬜ Orçamento por categoria mostra barra de progresso?
+
+### EMPRESA — DRE + prolabore
+
+- ⬜ CRUD de receitas e despesas por empresa funciona?
+- 🟡 DRE simplificado calcula as 6 linhas corretamente?
+- 🔴 Prolabore gera `receita_pessoal_id` automaticamente?
+- ⬜ Múltiplas empresas no mesmo workspace isoladas entre si?
+
+### PROJETOS — Lifecycle + ROI
+
+- ⬜ Criação percorre: rascunho → ativo → concluído?
+- 🟡 ROI calculado automaticamente com despesas vinculadas?
+- 🟡 Alerta de orçamento dispara em 80% do previsto?
+- ⬜ Tarefas do projeto aparecem no Kanban?
+
+### KANBAN — Drag & realtime
+
+- ⬜ Itens de projetos e alinhamentos aparecem juntos no board?
+- 🟡 Drag-and-drop atualiza tabela de origem correta?
+- 🔴 Mudança em `/projetos/[id]` reflete no Kanban em tempo real?
+- ⬜ Filtros por responsável e projeto funcionam?
+
+### ALINHAMENTO — Sessão + pauta automática
+
+- 🟡 Pauta pré-gerada inclui tarefas vencidas e alertas?
+- 🔴 Ações criadas na sessão aparecem no Kanban ao encerrar?
+- ⬜ Linguagem muda conforme modo ("Reunião" vs "Revisão Semanal")?
+- ⬜ Histórico de sessões anteriores visível?
+
+---
+
+## Dashboard & Saúde do Sistema (Fase 8)
+
+### Dashboard — Performance + alertas
+
+- 🟡 Carrega em menos de 1 segundo (`Promise.all` em paralelo)?
+- 🟡 Semáforos corretos para pessoal, empresa e projetos?
+- 🔴 Alertas vermelhos aparecem antes dos amarelos e azuis?
+- ⬜ Cada alerta leva ao módulo correto ao clicar?
+
+### Relatório PDF — Geração com dados reais
+
+- ⬜ `/relatorios/mensal` abre sem erro?
+- 🟡 PDF gerado contém dados reais do mês selecionado?
+- ⬜ Seções PESSOAL, EMPRESA, PROJETOS e AÇÕES presentes?
+- ⬜ Download funciona no mobile?
+
+---
+
+## Qualidade & Segurança
+
+### RLS Supabase — Isolamento de dados por workspace
+
+- 🔴 Usuário de workspace A não vê dados do workspace B?
+- 🔴 RLS ativo em todas as tabelas principais?
+- 🟡 Modo sócios: módulo PESSOAL isolado por `user_id`?
+
+### UX SCLC-G — Critérios de qualidade
+
+- ⬜ Toda ação principal em ≤ 3 cliques?
+- ⬜ Estados loading / error / empty cobertos em todos os módulos?
+- ⬜ Toast em toda ação do usuário?
+- 🟡 Touch targets ≥ 48px no mobile (375px)?
+
+---
+
+## Resumo de prioridades
+
+| Prioridade | Quantidade | Área principal |
+|------------|-----------|----------------|
+| 🔴 Crítico | 10 | Auth, prolabore, RLS, realtime Kanban |
+| 🟡 Moderado | 11 | Cálculos, modos de workspace, performance |
+| ⬜ Manual | 16 | CRUD, UX, rotas, PDF |

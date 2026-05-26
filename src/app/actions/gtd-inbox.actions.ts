@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import type { GtdInboxItem } from '@/types';
 
-type Supa = ReturnType<typeof createClient>;
+type Supa = Awaited<ReturnType<typeof createClient>>;
 
 async function insertGamificationEvent(supabase: Supa, workspace_id: string, user_id: string, tipo: string, pontos: number, descricao?: string) {
   await supabase.from('gamification_eventos').insert([{ workspace_id, user_id, tipo, pontos, descricao }]);

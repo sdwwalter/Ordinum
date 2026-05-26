@@ -17,12 +17,13 @@ export function CardProjeto({ projeto }: CardProjetoProps) {
   // Como as tarefas detalhadas ficam em /projetos/[id], podemos simplificar ou usar um hook.
   // Aqui faremos uma estimativa de status, ou podíamos injetar a prop.
   
-  const statusColors = {
+  const statusColors: Record<import('@/types/projetos').StatusProjeto, string> = {
     rascunho: 'bg-neutral-100 text-neutral-600',
     ativo: 'bg-amber-100 text-amber-700',
     pausado: 'bg-neutral-200 text-neutral-700',
     concluido: 'bg-emerald-100 text-emerald-700',
     cancelado: 'bg-red-100 text-red-700',
+    algum_dia: 'bg-blue-100 text-blue-700',
   };
 
   const investimentoRealizado = projeto.despesas_empresa?.reduce((acc, d) => acc + d.valor, 0) || 0;

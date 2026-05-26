@@ -1,13 +1,24 @@
+import bundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@react-pdf/renderer'],
-  turbopack: {},
-  webpack: (config) => {
-    // Resolve o problema de ESM com @react-pdf/renderer
-    config.resolve = config.resolve || {};
-    config.resolve.alias = config.resolve.alias || {};
-    return config;
-  },
-};
+  reactStrictMode: true,
 
-export default nextConfig;
+  transpilePackages: ['@react-pdf/renderer'],
+
+  turbopack: {},
+
+  webpack: (config) => {
+    // Resolve problema ESM do react-pdf
+    config.resolve = config.resolve || {}
+    config.resolve.alias = config.resolve.alias || {}
+
+    return config
+  },
+}
+
+export default withBundleAnalyzer(nextConfig)

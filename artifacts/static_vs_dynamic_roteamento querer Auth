@@ -1,0 +1,41 @@
+# Análise de Renderização Next.js (Static vs Dynamic)
+
+Você notou que grande parte das páginas do Ordinum foi classificada como dinâmica (`ƒ`) no log de build, com poucas marcadas como estáticas (`○`). 
+
+Esse comportamento é **100% correto e esperado** para o seu projeto.
+
+## O que define uma página como Dinâmica (`ƒ`)?
+No Next.js (App Router), uma rota se torna dinâmica — ou seja, ela é renderizada sob demanda a cada requisição do servidor — se ela fizer qualquer uma das seguintes ações:
+1. Usar a função `cookies()` ou `headers()`.
+2. Fazer fetch de dados sem cache (ex: chamadas diretas ao banco que dependem do contexto da requisição).
+3. Ler `searchParams` em Server Components.
+
+## O Caso do Ordinum
+O Ordinum é um sistema SaaS (Software as a Service) voltado para uso autenticado e multi-tenant (com áreas restritas a casais ou uso solo).
+
+### 1. A Área Logada (`/app/*` e `/api/*`)
+Observe o seu `Sidebar.tsx`, que é carregado em toda a rota `/app`:
+```tsx
+export async function Sidebar() {
+  const supabase = await createClient(); // Inicializa o cliente do servidor
+  const { count } = await supabase.from('gtd_inbox').select('id', { count: 'exact', head: true }).eq('processado', false);
+```
+O `createClient()` lê os **cookies de autenticação** da requisição atual para saber qual usuário está acessando e consultar as notificações (inbox) desse usuário específico no Supabase. 
+
+Como a Sidebar precisa de cookies, o Next.js automaticamente marca toda a raiz `/app` e seus filhos como dinâmicos. E isso é fundamental: se fosse estático, o Next.js "congelaria" o HTML no momento do build e todos os usuários veriam o nome e as tarefas do mesmo usuário.
+
+### 2. A Área Pública
+Em contrapartida, veja as páginas marcadas como Estáticas (`○`):
+- `/` (Página inicial)
+- `/login`
+- `/cadastro`
+- `/precos`
+
+Essas páginas não leem o banco de dados filtrado por usuário nem precisam de cookies de autenticação para renderizar a interface base. Por isso, o Next.js as compila antecipadamente para entregar o HTML puro ultra-rápido via CDN.
+
+## Conclusão
+Para um SaaS como o seu, a estrutura atual é **ideal**. 
+- O site público voa porque é estático (`Static Site Generation`).
+- O app logado carrega sob demanda e de forma segura porque é dinâmico (`Server-Side Rendering`), garantindo que o isolamento de dados do Supabase (`workspace_id`) atue rigorosamente em cada requisição baseada na sessão ativa.
+
+Não é necessário alterar nada nesta configuração. O peso das rotas dinâmicas já foi drasticamente reduzido com o processo de otimização de bundles recém concluído.

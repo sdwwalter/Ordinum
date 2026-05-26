@@ -1,5 +1,3 @@
-'use client';
-
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
 // Registrar fonte (opcional, mas recomendado para evitar problemas de caractere)
@@ -14,7 +12,7 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#e6e5ebff',
     paddingBottom: 20,
   },
   title: {

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ordinum — Auth · Empresa · Alinhamento · Configurações</title>
+  <link rel="stylesheet" href="tokens.css">
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body style="background:#03060E;">
+  <div id="root"></div>
+
+  <!-- Order: primitives → tweaks → canvas → shared shell (from system.jsx) → extras -->
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="system.jsx"></script>
+  <script type="text/babel" src="views-extras.jsx"></script>
+
+  <script type="text/babel">
+    const { useEffect } = React;
+
+    /* Force cyan accent (the user's chosen palette from Ordinum.html) */
+    function applyCyan() {
+      const r = document.documentElement.style;
+      r.setProperty('--teal-300', '#67E8F9');
+      r.setProperty('--teal-400', '#22D3EE');
+      r.setProperty('--teal-500', '#06B6D4');
+      r.setProperty('--teal-600', '#0891B2');
+    }
+
+    function App() {
+      useEffect(() => {
+        applyCyan();
+        const id = setInterval(() => window.lucide && window.lucide.createIcons(), 200);
+        return () => clearInterval(id);
+      }, []);
+
+      const SYS_W = 1440, SYS_H = 960;
+      const AUTH_W = 760, AUTH_H = 900;
+
+      return (
+        <DesignCanvas>
+          <DCSection id="auth" title="Auth" subtitle="Entrada no produto — login, cadastro, convite">
+            <DCArtboard id="login" label="Login" width={AUTH_W} height={AUTH_H} style={{ background: '#03060E' }}>
+              <div style={{ width: AUTH_W, height: AUTH_H }}><LoginView/></div>
+            </DCArtboard>
+            <DCArtboard id="cadastro" label="Cadastro · novo workspace" width={AUTH_W} height={AUTH_H} style={{ background: '#03060E' }}>
+              <div style={{ width: AUTH_W, height: AUTH_H }}><CadastroView/></div>
+            </DCArtboard>
+            <DCArtboard id="convite" label="Convite recebido" width={AUTH_W} height={AUTH_H} style={{ background: '#03060E' }}>
+              <div style={{ width: AUTH_W, height: AUTH_H }}><ConviteView/></div>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="empresa" title="Empresa" subtitle="Gestão financeira — lista, lançamentos, DRE e pró-labore">
+            <DCArtboard id="empresa-lista" label="Lista de empresas" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><EmpresaListaView/></div>
+            </DCArtboard>
+            <DCArtboard id="empresa-lancamentos" label="Lançamentos · mês corrente" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><EmpresaLancamentosView/></div>
+            </DCArtboard>
+            <DCArtboard id="empresa-dre" label="DRE · resultado mensal" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><EmpresaDREView/></div>
+            </DCArtboard>
+            <DCArtboard id="empresa-prolabore" label="Pró-labore" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><EmpresaProlaboreView/></div>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="alinhamento" title="Alinhamento" subtitle="Pautas, decisões e plano de ação">
+            <DCArtboard id="alinhamento-lista" label="Iniciar sessão · histórico" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><AlinhamentoListaView/></div>
+            </DCArtboard>
+            <DCArtboard id="alinhamento-sessao" label="Sessão ativa · pauta + ações" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><AlinhamentoSessaoView/></div>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="config" title="Configurações" subtitle="Workspace, preferências e plano">
+            <DCArtboard id="configuracoes" label="Configurações do workspace" width={SYS_W} height={SYS_H} style={{ background: '#03060E' }}>
+              <div style={{ width: SYS_W, height: SYS_H }}><ConfiguracoesView/></div>
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

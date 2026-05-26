@@ -3,7 +3,12 @@
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import confetti from 'canvas-confetti';
+
+// Import lazy do confetti — só carrega quando o badge aparece
+async function dispararConfete() {
+  const confetti = (await import('canvas-confetti')).default;
+  confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
+}
 
 export function BadgeModal() {
   const { novoBadge, fecharModalBadge } = useGamificationStore();
@@ -12,11 +17,7 @@ export function BadgeModal() {
   useEffect(() => {
     if (novoBadge) {
       setIsVisible(true);
-      confetti({
-        particleCount: 100,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
+      dispararConfete();
       
       const timer = setTimeout(() => {
         fecharModalBadge();

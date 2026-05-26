@@ -1,29 +1,63 @@
+'use client';
 import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+  [
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px]',
+    'text-sm font-semibold transition-all duration-200',
+    'focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40',
+    'select-none cursor-pointer',
+  ].join(' '),
   {
     variants: {
       variant: {
-        default: 'bg-foreground text-background shadow hover:bg-foreground/90',
-        destructive: 'bg-red-500 text-white shadow-sm hover:bg-red-500/90',
-        outline: 'border border-border bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-neutral-100 text-neutral-900 shadow-sm hover:bg-neutral-100/80',
-        ghost: 'hover:bg-neutral-100 hover:text-neutral-900',
-        link: 'text-primary underline-offset-4 hover:underline',
+        primary: [
+          'bg-brand-400 text-brand-fg',
+          'hover:bg-brand-300 hover:shadow-[0_0_0_8px_rgba(34,211,238,0.12)]',
+          'active:bg-brand-500',
+        ].join(' '),
+        secondary: [
+          'bg-white/4 text-text border border-white/10',
+          'hover:bg-white/7 hover:border-white/16',
+        ].join(' '),
+        ghost: [
+          'bg-transparent text-text-muted',
+          'hover:bg-white/4 hover:text-text',
+        ].join(' '),
+        outline: [
+          'bg-transparent text-brand-300 border border-brand-400/30',
+          'hover:bg-brand-400/8 hover:border-brand-400/50',
+        ].join(' '),
+        danger: [
+          'bg-error/10 text-error border border-error/30',
+          'hover:bg-error/20 hover:border-error/50',
+        ].join(' '),
+        // legacy alias — mantém compatibilidade durante migração
+        default: [
+          'bg-brand-400 text-brand-fg',
+          'hover:bg-brand-300 hover:shadow-[0_0_0_8px_rgba(34,211,238,0.12)]',
+        ].join(' '),
+        destructive: [
+          'bg-error/10 text-error border border-error/30',
+          'hover:bg-error/20 hover:border-error/50',
+        ].join(' '),
+        link: 'bg-transparent text-brand-300 underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-12 px-4 py-2 min-h-[48px]', // Touch target >= 48px
-        sm: 'h-10 rounded-md px-3 text-xs min-h-[40px]',
-        lg: 'h-14 rounded-md px-8 min-h-[56px]',
-        icon: 'h-12 w-12 min-h-[48px]',
+        sm: 'h-[34px] px-3 text-xs',
+        md: 'h-[42px] px-4 text-sm',
+        default: 'h-[42px] px-4 text-sm',
+        lg: 'h-[52px] px-6 text-base',
+        icon: 'h-[42px] w-[42px]',
+        'icon-sm': 'h-[34px] w-[34px]',
       },
     },
     defaultVariants: {
-      variant: 'default',
-      size: 'default',
+      variant: 'primary',
+      size: 'md',
     },
   }
 );
@@ -36,10 +70,11 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
     return (
-      <button
+      <Comp
         className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
+        ref={ref as React.Ref<HTMLButtonElement>}
         {...props}
       />
     );

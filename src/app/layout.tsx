@@ -1,15 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const playfair = Playfair_Display({
   subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -18,8 +29,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
-import { Toaster } from 'sonner';
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,12 +36,21 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="pt-BR"
+      className={`${inter.variable} ${playfair.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-bg text-text">
         {children}
-        <Toaster />
+        <Toaster
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: "var(--color-surface-2)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              color: "var(--color-text)",
+            },
+          }}
+        />
       </body>
     </html>
   );
